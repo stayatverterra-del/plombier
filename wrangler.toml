@@ -1,0 +1,17 @@
+name = "plombier"
+main = "src/index.js"
+compatibility_date = "2026-07-21"
+
+# Site statique servi par le Worker (fichiers .html, assets/, _headers, _redirects…)
+[assets]
+directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+# Base des demandes du site (D1). Le bouton « Deploy to Cloudflare » crée une
+# base neuve sur le compte de l'utilisateur et remplace l'ID ci-dessous tout seul.
+[[d1_databases]]
+binding = "DB"
+database_name = "plombier-leads"
+database_id = "35dd372a-e189-4ff7-b98d-e89856fbdba9"
+migrations_dir = "migrations"

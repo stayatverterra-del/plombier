@@ -1,0 +1,12 @@
+# Page supprimée
+/realisations.html  /renovation-salle-de-bains.html  301
+/realisations       /renovation-salle-de-bains.html  301
+
+# Neutralise les fichiers internes exposés par le tout premier déploiement,
+# et chasse leur copie du cache CDN.
+/build.py    /  301
+/publish.py  /  301
+/README.md   /  301
+
+# Espace de suivi (non indexé)
+/admin  /suivi.html  302

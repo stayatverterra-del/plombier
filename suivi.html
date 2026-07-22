@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suivi des demandes — Renauva</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#07090D;--slate:#10161F;--slate2:#161E29;--blue:#0B5FA5;--azure:#3AA0F5;
+    --bone:#F5F3EF;--dim:#B9BDC4;--line:rgba(245,243,239,.12);--line-s:rgba(245,243,239,.07);
+    --vert:#25D366;--orange:#F5B700;--rouge:#E4402F;
+    --d:"Bricolage Grotesque",sans-serif;--b:"Manrope",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--bone);font-family:var(--b);font-size:15px;line-height:1.55}
+  a{color:var(--azure)}
+  .wrap{max-width:1500px;margin:0 auto;padding:22px}
+  h1{font-family:var(--d);font-weight:800;font-size:clamp(24px,3vw,36px);letter-spacing:-.04em;margin:0}
+  .top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+    padding-bottom:18px;border-bottom:1px solid var(--line-s);margin-bottom:22px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:100px;
+    border:1px solid var(--line);font-weight:700;font-size:.9rem;cursor:pointer;background:none;
+    color:var(--bone);text-decoration:none;transition:.25s}
+  .btn:hover{border-color:var(--azure);color:var(--azure)}
+  .btn--p{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn--p:hover{background:var(--azure);color:var(--ink);border-color:var(--azure)}
+
+  .login{max-width:420px;margin:14vh auto;padding:34px;border:1px solid var(--line);
+    border-radius:20px;background:var(--slate2);text-align:center}
+  .login p{color:var(--dim);font-size:.92rem}
+  input[type=password],input[type=search]{width:100%;padding:13px 16px;border-radius:12px;
+    border:1px solid var(--line);background:rgba(7,9,13,.6);color:var(--bone);font:inherit;margin:12px 0}
+  .err{color:#FF8878;font-size:.88rem;min-height:1.2em}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+  .stat{padding:16px 18px;border:1px solid var(--line-s);border-radius:14px;background:var(--slate2)}
+  .stat b{display:block;font-family:var(--d);font-weight:800;font-size:1.8rem;letter-spacing:-.04em}
+  .stat span{font-size:.8rem;color:var(--dim)}
+
+  .filtres{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;align-items:center}
+  .chip{padding:8px 15px;border-radius:100px;border:1px solid var(--line-s);font-size:.85rem;
+    font-weight:600;color:var(--dim);cursor:pointer;background:none}
+  .chip.on{background:rgba(11,95,165,.25);border-color:var(--azure);color:var(--bone)}
+  .chip--renta{border-color:rgba(245,183,0,.4)}
+  .chip--renta.on{background:rgba(245,183,0,.2);border-color:#F5B700;color:#FFD65A}
+  .chip--fait.on{background:rgba(37,211,102,.2);border-color:var(--vert);color:var(--vert)}
+  .chip--urg{border-color:rgba(228,64,47,.4);color:#FF8878}
+  .chip--urg.on{background:rgba(228,64,47,.18);border-color:var(--rouge);color:#FF8878}
+  .btn--done{border-color:rgba(37,211,102,.45);color:var(--vert)}
+  .btn--done:hover{background:var(--vert);border-color:var(--vert);color:var(--ink)}
+  .btn--del{border-color:rgba(228,64,47,.45);color:#FF8878}
+  .btn--del:hover{background:var(--rouge);border-color:var(--rouge);color:#fff}
+  .bulk{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+    padding:14px 18px;margin-bottom:16px;border:1px solid rgba(228,64,47,.25);
+    border-radius:14px;background:rgba(228,64,47,.06);font-size:.86rem;color:var(--dim)}
+  .c.fait{opacity:.72}
+  .c.fait .c__n::after{content:" ✅";font-size:.9rem}
+  .coins{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+  .coin{position:absolute;top:-40px;font-size:26px;will-change:transform,opacity;
+    animation:fall linear forwards}
+  @keyframes fall{0%{transform:translateY(-40px) rotate(0);opacity:1}
+    100%{transform:translateY(105vh) rotate(720deg);opacity:.15}}
+  .chip--adv{margin-left:auto;border-style:dashed}
+  .chip--adv.on{background:rgba(245,243,239,.08);border-color:var(--bone);color:var(--bone)}
+
+  /* Panneau de filtres avancés */
+  .adv{border:1px solid var(--line-s);border-radius:14px;background:var(--slate2);
+    padding:14px;margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+  .adv__row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .achip{padding:8px 14px;border-radius:100px;border:1px solid var(--line-s);font-size:.84rem;
+    font-weight:600;color:var(--dim);cursor:pointer;background:none}
+  .achip.on{background:rgba(11,95,165,.25);border-color:var(--azure);color:var(--bone)}
+  .achip--renta.on{background:rgba(245,183,0,.2);border-color:#F5B700;color:#FFD65A}
+  .achip--fait{border-color:rgba(37,211,102,.4);color:#7EE6A8}
+  .achip--fait:hover{background:rgba(37,211,102,.14)}
+  .asel{padding:9px 14px;border-radius:100px;border:1px solid var(--line-s);background:var(--slate);
+    color:var(--bone);font:inherit;font-size:.84rem;cursor:pointer}
+  .adv input[type=search]{flex:1;min-width:200px;margin:0;padding:9px 15px}
+  #csvAdv{margin-left:auto}
+  .filtres input[type=search]{flex:1;min-width:200px;margin:0;padding:9px 15px}
+
+  .foot{margin-top:26px;padding-top:18px;border-top:1px solid var(--line-s);text-align:center}
+
+  /* Badges d'intervention */
+  .c__badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .badge{font-size:.72rem;font-weight:800;font-family:var(--d);letter-spacing:-.01em;
+    padding:4px 10px;border-radius:100px}
+  .badge--urg{background:rgba(228,64,47,.16);color:#FF8878}
+  .badge--renta{background:linear-gradient(100deg,#F5B700,#FFD65A);color:#1a1205}
+  .badge--new{background:rgba(58,160,245,.18);color:#8FCBFF}
+  .c__sum{font-size:.92rem;font-weight:600;margin:0 0 12px;color:var(--bone)}
+  .c[data-card]{cursor:pointer}
+  .c__more{max-height:0;overflow:hidden;transition:max-height .32s ease}
+  .c.open .c__more{max-height:1400px}
+  .c__toggle{background:none;border:none;color:var(--azure);font:inherit;font-weight:700;
+    font-size:.82rem;cursor:pointer;padding:0;margin:2px 0 12px}
+
+  /* Splash de bienvenue */
+  .splash{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:var(--ink);
+    animation:splashOut .5s ease 1.7s forwards}
+  .splash__in{text-align:center;padding:24px}
+  .splash__tool{font-size:64px;position:relative;display:inline-block;animation:wrench 1.1s ease}
+  .splash__drop{position:absolute;right:-6px;bottom:-2px;font-size:26px;opacity:0;
+    animation:drip 1.2s ease .5s}
+  .splash__hi{font-family:var(--d);font-weight:800;font-size:clamp(26px,5vw,40px);
+    letter-spacing:-.04em;margin:14px 0 6px;opacity:0;animation:rise .5s ease .35s forwards}
+  .splash__wave{display:inline-block;transform-origin:70% 70%;animation:wave 1s ease .5s 2}
+  .splash__sub{color:var(--dim);opacity:0;animation:rise .5s ease .6s forwards}
+  @keyframes wrench{0%{transform:rotate(-20deg) scale(.6);opacity:0}
+    60%{transform:rotate(12deg) scale(1.08);opacity:1}100%{transform:rotate(0) scale(1)}}
+  @keyframes drip{0%,40%{opacity:0;transform:translateY(-6px)}60%{opacity:1}
+    100%{opacity:0;transform:translateY(14px)}}
+  @keyframes wave{0%,100%{transform:rotate(0)}25%{transform:rotate(18deg)}75%{transform:rotate(-8deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes splashOut{to{opacity:0;visibility:hidden}}
+  @media(prefers-reduced-motion:reduce){.splash{animation-delay:.4s}
+    .splash__tool,.splash__drop,.splash__hi,.splash__wave,.splash__sub{animation:none;opacity:1}}
+
+  .cartes{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:14px}
+  .c{border:1px solid var(--line-s);border-radius:16px;background:var(--slate2);padding:20px;
+    border-left:4px solid var(--line)}
+  .c.hot{border-left-color:var(--vert)}
+  .c.mid{border-left-color:var(--orange)}
+  .c.low{border-left-color:var(--rouge)}
+  .c.urg{border-left-color:var(--rouge);border-left-width:5px}
+  .c.renta{border-color:rgba(245,183,0,.5);box-shadow:0 0 0 1px rgba(245,183,0,.25),0 8px 30px -12px rgba(245,183,0,.4)}
+  .c__renta{display:inline-flex;align-items:center;gap:6px;font-family:var(--d);font-weight:800;
+    font-size:.82rem;letter-spacing:-.01em;color:#1a1205;background:linear-gradient(100deg,#F5B700,#FFD65A);
+    padding:5px 12px;border-radius:100px;margin-bottom:12px}
+  .c__badge{font-size:1.25rem;padding:4px 10px;border-radius:10px;background:rgba(245,243,239,.06)}
+  .c__badge--top{background:rgba(245,183,0,.16)}
+  .c__badge--mid{background:rgba(58,160,245,.14)}
+  .c__h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+  .c__n{font-family:var(--d);font-weight:800;font-size:1.15rem;letter-spacing:-.03em}
+  .c__t{display:block;font-size:1.05rem;font-weight:700;color:var(--azure);text-decoration:none}
+  .c__s{font-family:var(--d);font-weight:800;font-size:1.3rem;padding:5px 12px;border-radius:10px;
+    background:rgba(245,243,239,.06);white-space:nowrap}
+  .c.hot .c__s{color:var(--vert)}.c.mid .c__s{color:var(--orange)}.c.low .c__s{color:var(--rouge)}
+  .c__d{font-size:.78rem;color:var(--dim);margin-bottom:12px}
+  .c__urg{font-size:.8rem;font-weight:700;color:var(--rouge);margin:6px 0}
+  .c__l{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.86rem;margin-bottom:12px}
+  .c__l dt{color:var(--dim)}
+  .c__l dd{margin:0}
+  .c__m{font-size:.88rem;background:rgba(7,9,13,.5);border-radius:10px;padding:12px;
+    margin-bottom:12px;white-space:pre-wrap}
+  .c__p{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .c__p img{width:76px;height:76px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer}
+  .c__f{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:12px;
+    border-top:1px solid var(--line-s)}
+  select.st{padding:8px 12px;border-radius:100px;border:1px solid var(--line);
+    background:var(--slate);color:var(--bone);font:inherit;font-size:.82rem;cursor:pointer}
+  .vide{text-align:center;color:var(--dim);padding:60px 20px}
+  .zoom{position:fixed;inset:0;background:rgba(7,9,13,.94);display:none;place-items:center;
+    z-index:50;padding:20px;cursor:zoom-out}
+  .zoom.on{display:grid}
+  .zoom img{max-width:100%;max-height:92vh;border-radius:12px}
+  @media(max-width:640px){.cartes{grid-template-columns:1fr}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+  <h1>Suivi des demandes</h1>
+  <p>Espace réservé — Renauva</p>
+  <input type="password" id="cle" placeholder="Clé d'accès" autocomplete="current-password">
+  <p class="err" id="err"></p>
+  <button class="btn btn--p" id="go" style="width:100%;justify-content:center">Ouvrir</button>
+</div>
+
+<!-- Accueil animé après la saisie de la clé -->
+<div class="splash" id="splash" hidden>
+  <div class="splash__in">
+    <div class="splash__tool">🔧<span class="splash__drop">💧</span></div>
+    <h2 class="splash__hi">Bonjour Brahim <span class="splash__wave">👋</span></h2>
+    <p class="splash__sub" id="splashSub">On regarde les demandes du jour…</p>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="top">
+    <div>
+      <h1>Demandes reçues</h1>
+      <p style="margin:4px 0 0;color:var(--dim);font-size:.86rem" id="maj"></p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="refresh">Actualiser</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <!-- Filtres principaux -->
+  <div class="filtres">
+    <button class="chip on" data-v="atraiter">À traiter</button>
+    <button class="chip chip--urg" data-v="urg">🚨 Les plus urgentes</button>
+    <button class="chip" data-v="toutes">Toutes</button>
+    <button class="chip chip--fait" data-v="fait">Terminées</button>
+    <button class="chip chip--adv" id="advToggle" aria-expanded="false">Plus de filtres ▾</button>
+  </div>
+
+  <!-- Filtres avancés : cachés par défaut -->
+  <div class="adv" id="adv" hidden>
+    <div class="adv__row">
+      <button class="achip achip--renta" data-a="renta">🔥 Les plus rentables</button>
+      <button class="achip" data-a="recent">🕒 Les plus récentes</button>
+      <button class="achip" data-a="photos">📷 Avec photos</button>
+      <button class="achip achip--fait" id="advFait" style="margin-left:auto">✅ Intervention réalisée</button>
+    </div>
+    <div class="adv__row">
+      <input type="search" id="q" placeholder="Rechercher un nom, un secteur, un téléphone…">
+      <a class="btn" id="csvAdv" download>⬇︎ Export Excel / Sheets</a>
+    </div>
+  </div>
+
+  <div class="bulk" id="bulk" hidden>
+    <span>Interventions terminées — vous pouvez les archiver définitivement.</span>
+    <button class="btn btn--del" id="bulkDel">🗑️ Tout supprimer</button>
+  </div>
+
+  <div class="cartes" id="cartes"></div>
+  <p class="vide" id="vide" hidden>Aucune demande pour l'instant.</p>
+
+  <div class="foot">
+    <a class="btn" id="csv" download>⬇︎ Télécharger en Excel / Sheets</a>
+  </div>
+</div>
+
+<div class="zoom" id="zoom"><img alt="Photo envoyée par le client"></div>
+
+<script>
+(function () {
+  var CLE = '', DATA = [];
+  var VUE = 'atraiter';   // atraiter | toutes | fait
+  var ADV = null;         // null | renta | recent | photos
+  var $ = function (s) { return document.querySelector(s); };
+
+  // Un lead « à traiter » = pipeline actif (ni terminé, ni perdu).
+  function aTraiter(d) { return d.statut !== 'Réalisée' && d.statut !== 'Perdu'; }
+  // « Nouveau » = jamais rappelé et reçu il y a moins de 48h.
+  function estNouveau(d) {
+    if (d.statut !== 'À rappeler') return false;
+    return (Date.now() - new Date(d.recu_le)) / 36e5 < 48;
+  }
+
+  function rang(d) {
+    if (d.score == null) return '';
+    return d.score >= 7 ? 'hot' : d.score >= 5 ? 'mid' : 'low';
+  }
+
+  // Numéro pour tel: — chiffres et éventuel + conservés.
+  function telNum(t) { return String(t || '').replace(/[^\d+]/g, ''); }
+  // Numéro pour WhatsApp — format international sans + ni espaces.
+  // 06… → 336…, +33… / 0033… → 33…, sinon on garde les chiffres.
+  function waNum(t) {
+    var n = String(t || '').replace(/\D/g, '');
+    if (n.indexOf('00') === 0) n = n.slice(2);          // 0033… → 33…
+    else if (n.charAt(0) === '0') n = '33' + n.slice(1); // 06… → 336…
+    return n;
+  }
+
+  // Retire accents + minuscule, pour une analyse robuste des mots-clés.
+  function norm(str) {
+    return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  // Évaluation de rentabilité d'un lead (déterministe, calculée ici).
+  // Pondération : type de demande + budget + urgence + mots-clés de la description.
+  function renta(d) {
+    var s = 0;
+
+    // --- Type de demande ---
+    var t = norm(d.type_demande);
+    if (/salle de bains|cuisine/.test(t)) s += 5;      // gros chantiers réno
+    else if (/chauffe-eau/.test(t)) s += 3;
+    else if (/recherche de fuite|urgence/.test(t)) s += 2;
+    else s += 1;                                        // débouchage, dépannage, autre
+
+    // --- Budget approximatif ---
+    var b = norm(d.budget);
+    if (/20 000/.test(b)) s += 5;                       // «plus de 20 000» et «10 000 – 20 000»
+    else if (/5 000/.test(b)) s += 3;                   // «2 000 – 5 000» et «5 000 – 10 000»
+    else if (/2 000/.test(b)) s += 2;                   // «500 – 2 000»
+    // «moins de 500» et «je ne sais pas» → +0
+
+    // --- Urgence < 2h ---
+    if (d.urgence_2h) s += 2;
+
+    // --- Mots-clés à forte valeur commerciale (plafond +3) ---
+    var m = norm(d.message);
+    var kw = ['refaire', 'renov', 'installation', 'neuf', 'complet', 'changer',
+              'remplacement', 'remplacer', 'devis', 'deplacer', 'total', 'entier'];
+    var hits = kw.filter(function (k) { return m.indexOf(k) > -1; }).length;
+    s += Math.min(hits, 3);
+
+    if (s >= 7) return { lvl: 'top', label: 'Très rentable', emoji: '💰', s: s };
+    if (s >= 4) return { lvl: 'mid', label: 'Bonne opportunité', emoji: '✨', s: s };
+    return { lvl: 'std', label: 'Intervention standard', emoji: '🔧', s: s };
+  }
+
+  // Nombre de sacs d'or (1 à 4) selon le type de chantier + le texte du message.
+  // 4 = très rentable … 1 = peu rentable … 0 = pas de badge.
+  function sacsRenta(d) {
+    var texte = norm((d.type_demande || '') + ' ' + (d.message || ''));
+
+    var tres = [/renovation.{0,25}(salle de bain|cuisine)/, /creation.{0,25}salle de bain/,
+      /(installation|remplacement).{0,25}(chauffe-eau|cumulus|chaudiere)/, /adoucisseur/];
+    var rentable = [/(fuite|degat).{0,20}(urgent|eaux?)/, /urgence.{0,15}fuite/,
+      /remplacement.{0,20}robinetterie/, /installation.{0,20}(douche|baignoire)/,
+      /raccordement.{0,20}electromenager/, /mise aux normes/];
+    var moyen = [/chauffe-eau/, /fuite.{0,15}(robinet|joint)/,
+      /(remplacement|installation).{0,15}wc/, /pression/];
+    var peu = [/debouchage|engorgement/, /petite fuite/, /detartrage/];
+
+    var testeUn = function (liste) { return liste.some(function (r) { return r.test(texte); }); };
+
+    if (testeUn(tres)) return { n: 4, label: 'Très rentable' };
+    if (testeUn(rentable)) return { n: 3, label: 'Rentable' };
+    if (testeUn(moyen)) return { n: 2, label: 'Moyen' };
+    if (testeUn(peu)) return { n: 1, label: 'Peu rentable' };
+    return { n: 0, label: '' };
+  }
+  function dateFr(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+      + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function charger() {
+    return fetch('/api/leads?cle=' + encodeURIComponent(CLE) + '&t=' + Date.now(),
+                 { cache: 'no-store' })
+      .then(function (r) {
+        if (r.status === 401) throw new Error('cle');
+        if (!r.ok) throw new Error('serveur:' + r.status);
+        return r.json();
+      })
+      .then(function (j) { DATA = j.demandes || []; rendre(); });
+  }
+
+  function rendre() {
+    var q = ($('#q') && $('#q').value || '').toLowerCase();
+    var lot = DATA.filter(function (d) {
+      // Vue principale
+      if (VUE === 'fait') { if (d.statut !== 'Réalisée') return false; }
+      else if (VUE === 'atraiter') { if (!aTraiter(d)) return false; }
+      else if (VUE === 'urg') { if (!d.urgence_2h || !aTraiter(d)) return false; }
+      // 'toutes' → tout, y compris terminées et perdues
+
+      // Filtres avancés
+      if (ADV === 'photos' && !(d.nb_photos > 0)) return false;
+
+      if (q) {
+        var blob = [d.nom, d.telephone, d.email, d.secteur, d.adresse, d.type_demande, d.message].join(' ').toLowerCase();
+        if (blob.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    // Tri
+    var byDate = function (a, b) { return new Date(b.recu_le) - new Date(a.recu_le); };
+    var byRenta = function (a, b) {
+      var x = sacsRenta(b).n - sacsRenta(a).n;
+      if (x !== 0) return x;
+      x = renta(b).s - renta(a).s;
+      return x !== 0 ? x : byDate(a, b);
+    };
+    if (ADV === 'recent') lot.sort(byDate);
+    else if (ADV === 'renta') lot.sort(byRenta);
+    else if (VUE === 'urg') lot.sort(byDate);          // urgentes : plus récentes d'abord
+    else if (VUE === 'atraiter') lot.sort(byRenta);   // défaut : rentabilité puis date
+    else lot.sort(byDate);                             // toutes, terminées : chronologique
+
+    // Barre de suppression groupée : uniquement dans « Terminées ».
+    $('#bulk').hidden = VUE !== 'fait' || lot.length === 0;
+
+    // Statistiques
+    var atraiter = DATA.filter(aTraiter).length;
+    var rentables = DATA.filter(function (d) { return sacsRenta(d).n >= 3; }).length;
+    var urgentes = DATA.filter(function (d) { return d.urgence_2h && aTraiter(d); }).length;
+    $('#stats').innerHTML =
+      '<div class="stat"><b style="color:var(--azure)">' + atraiter + '</b><span>à traiter</span></div>' +
+      '<div class="stat"><b style="color:#FF8878">' + urgentes + '</b><span>urgentes 🔴</span></div>' +
+      '<div class="stat"><b style="color:#FFD65A">' + rentables + '</b><span>très rentables 💰</span></div>' +
+      '<div class="stat"><b>' + DATA.length + '</b><span>demandes au total</span></div>';
+
+    $('#maj').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR',
+      { hour: '2-digit', minute: '2-digit' });
+
+    $('#vide').hidden = lot.length > 0;
+    $('#cartes').innerHTML = lot.map(function (d) {
+      var ids = d.photo_ids ? String(d.photo_ids).split(',') : [];
+      var photos = ids.map(function (id) {
+        return '<img loading="lazy" src="/api/leads?cle=' + encodeURIComponent(CLE) +
+               '&photo=' + id + '" alt="Photo du client">';
+      }).join('');
+
+      var l = [];
+      var add = function (k, v) { if (v != null && v !== '') l.push('<dt>' + k + '</dt><dd>' + esc(v) + '</dd>'); };
+      add('Adresse', d.adresse);
+      add('E-mail', d.email);
+      add('Disponibilité', d.disponibilite);
+      add('Budget', d.budget);
+      add('Durée', d.duree);
+      add('Logement', d.logement ? d.logement + (d.acces ? ' · accès ' + d.acces.toLowerCase() : '') : '');
+      if (d.estim_bas) add('Estimation', d.estim_bas + ' € – ' + d.estim_haut + ' €');
+      if (d.proba) add('1re visite', d.proba + ' %');
+
+      var tel = telNum(d.telephone);
+      var wa = waNum(d.telephone);
+      var lieu = [d.adresse, d.secteur].filter(Boolean).join(', ');
+      var maps = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lieu);
+      var r = renta(d);
+      var sacs = sacsRenta(d);
+      var fait = d.statut === 'Réalisée';
+      var cls = (d.urgence_2h ? 'urg' : rang(d)) + (sacs.n >= 3 ? ' renta' : '') + (fait ? ' fait' : '');
+
+      // Badges d'intervention
+      var badges = '';
+      if (d.urgence_2h) badges += '<span class="badge badge--urg">🔴 Urgente</span>';
+      if (sacs.n > 0) badges += '<span class="badge badge--renta">' + '💰'.repeat(sacs.n) + ' ' + sacs.label + '</span>';
+      if (estNouveau(d)) badges += '<span class="badge badge--new">🆕 Nouveau</span>';
+
+      var secteurLigne = [d.type_demande, d.secteur + (d.km != null ? ' (~' + d.km + ' km)' : '')]
+        .filter(Boolean).join(' · ');
+
+      return '<article class="c ' + cls + '" data-card>' +
+        (badges ? '<div class="c__badges">' + badges + '</div>' : '') +
+        '<div class="c__h"><div>' +
+          '<span class="c__n">' + esc(d.nom || '—') + '</span>' +
+          '<a class="c__t" href="tel:' + esc(tel) + '">' + esc(d.telephone || '') + '</a>' +
+        '</div>' +
+        (d.score != null ? '<span class="c__s">' + d.score.toFixed(1) + '</span>' : '') +
+        '</div>' +
+        '<p class="c__d">' + dateFr(d.recu_le) + ' · ' + esc(d.source) + '</p>' +
+        '<p class="c__sum">' + esc(secteurLigne) + '</p>' +
+        '<div class="c__more">' +
+          '<dl class="c__l">' + l.join('') + '</dl>' +
+          (d.message ? '<div class="c__m">' + esc(d.message) + '</div>' : '') +
+        '</div>' +
+        '<button class="c__toggle" type="button" data-toggle>Voir les détails ▾</button>' +
+        (photos ? '<div class="c__p">' + photos + '</div>' : '') +
+        '<div class="c__f">' +
+          '<select class="st" data-id="' + d.id + '">' +
+            ['À rappeler', 'Rappelé', 'Devis envoyé', 'Signé', 'Réalisée', 'Perdu'].map(function (s) {
+              return '<option' + (s === d.statut ? ' selected' : '') + '>' + s + '</option>';
+            }).join('') +
+          '</select>' +
+          '<a class="btn" href="tel:' + esc(tel) + '">Appeler</a>' +
+          '<a class="btn" target="_blank" rel="noopener" href="https://wa.me/' + esc(wa) + '">WhatsApp</a>' +
+          (d.email ? '<a class="btn" href="mailto:' + esc(d.email) + '">E-mail</a>' : '') +
+          (lieu ? '<a class="btn" target="_blank" rel="noopener" href="' + esc(maps) + '">Itinéraire</a>' : '') +
+          (fait ? '' : '<button class="btn btn--done" data-done="' + d.id + '">✅ Réalisée</button>') +
+          '<button class="btn btn--del" data-del="' + d.id + '" title="Supprimer cette demande">Supprimer</button>' +
+        '</div></article>';
+    }).join('');
+  }
+
+  // Petit mot d'accueil, ton plombier.
+  function accueil() {
+    var atr = DATA.filter(aTraiter).length;
+    var urg = DATA.filter(function (d) { return d.urgence_2h && aTraiter(d); }).length;
+    if (urg) return urg + (urg > 1 ? ' urgences' : ' urgence') + ' à colmater en priorité 🔴';
+    if (atr) return atr + (atr > 1 ? ' demandes' : ' demande') + ' à traiter aujourd\'hui 🔧';
+    return 'Tout est à jour, aucune fuite en attente 💧';
+  }
+
+  function afficheApp() {
+    $('#login').hidden = true;
+    var sp = $('#splash');
+    var url = '/api/leads?cle=' + encodeURIComponent(CLE) + '&format=csv';
+    $('#csv').href = url;
+    $('#csvAdv').href = url;
+    $('#splashSub').textContent = accueil();
+    sp.hidden = false;
+    // La CSS masque le splash à la fin de son animation (~2,2s) ; on révèle l'app dessous.
+    $('#app').hidden = false;
+    setTimeout(function () { sp.hidden = true; }, 2300);
+  }
+
+  // Ouverture
+  function entrer() {
+    CLE = $('#cle').value.trim();
+    if (!CLE) return;
+    $('#err').textContent = 'Connexion…';
+    $('#go').disabled = true;
+    charger().then(function () {
+      afficheApp();
+      try { sessionStorage.setItem('renauva_cle', CLE); } catch (e) {}
+    }).catch(function (e) {
+      var m = String(e.message || '');
+      $('#err').textContent =
+        m === 'cle' ? 'Clé incorrecte.'
+        : m.indexOf('serveur') === 0 ? 'Le serveur a répondu ' + m.split(':')[1] + '. Réessayez dans un instant.'
+        : 'Pas de connexion au serveur. Vérifiez votre réseau, puis réessayez.';
+      try { sessionStorage.removeItem('renauva_cle'); } catch (err) {}
+    }).finally(function () { $('#go').disabled = false; });
+  }
+  $('#go').addEventListener('click', entrer);
+  $('#cle').addEventListener('keydown', function (e) { if (e.key === 'Enter') entrer(); });
+
+  $('#refresh').addEventListener('click', function () {
+    var b = this;
+    b.disabled = true; b.textContent = 'Actualisation…';
+    charger().catch(function () {
+      $('#maj').textContent = 'Échec de l\'actualisation — réessayez.';
+    }).finally(function () { b.disabled = false; b.textContent = 'Actualiser'; });
+  });
+  $('#q').addEventListener('input', rendre);
+
+  // Filtres principaux (vues)
+  function basculerVue(v) {
+    document.querySelectorAll('.filtres .chip[data-v]').forEach(function (o) { o.classList.remove('on'); });
+    var actif = $('.filtres .chip[data-v="' + v + '"]');
+    if (actif) actif.classList.add('on');
+    VUE = v; rendre();
+  }
+  document.querySelectorAll('.filtres .chip[data-v]').forEach(function (c) {
+    c.addEventListener('click', function () { basculerVue(c.dataset.v); });
+  });
+
+  // Accès rapide « Intervention réalisée » depuis le panneau de filtres avancés
+  $('#advFait').addEventListener('click', function () { basculerVue('fait'); });
+
+  // Bouton « Plus de filtres »
+  $('#advToggle').addEventListener('click', function () {
+    var open = $('#adv').hidden;
+    $('#adv').hidden = !open;
+    this.classList.toggle('on', open);
+    this.setAttribute('aria-expanded', String(open));
+    this.textContent = open ? 'Moins de filtres ▴' : 'Plus de filtres ▾';
+  });
+
+  // Filtres avancés (mutuellement exclusifs, re-clic = désactive)
+  document.querySelectorAll('.achip[data-a]').forEach(function (c) {
+    c.addEventListener('click', function () {
+      var was = c.classList.contains('on');
+      document.querySelectorAll('.achip[data-a]').forEach(function (o) { o.classList.remove('on'); });
+      if (was) { ADV = null; }
+      else { c.classList.add('on'); ADV = c.dataset.a; if (ADV === 'renta') pluieDePieces(); }
+      rendre();
+    });
+  });
+
+  // Petite pluie de pièces au clic sur « Les plus rentables ». Léger, sans dépendance.
+  function pluieDePieces() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var box = document.createElement('div');
+    box.className = 'coins';
+    document.body.appendChild(box);
+    var emojis = ['💰', '🪙', '💵', '💶'];
+    for (var i = 0; i < 26; i++) {
+      var c = document.createElement('span');
+      c.className = 'coin';
+      c.textContent = emojis[i % emojis.length];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.fontSize = (18 + Math.random() * 18) + 'px';
+      c.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+      c.style.animationDelay = (Math.random() * 0.5) + 's';
+      box.appendChild(c);
+    }
+    setTimeout(function () { box.remove(); }, 3600);
+  }
+
+  function majStatut(id, statut) {
+    return fetch('/api/leads?cle=' + encodeURIComponent(CLE), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: +id, statut: statut })
+    }).then(charger);
+  }
+  function supprimer(ids) {
+    return fetch('/api/leads?cle=' + encodeURIComponent(CLE), {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ids })
+    }).then(charger);
+  }
+
+  // Statut (menu déroulant)
+  document.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('st')) return;
+    majStatut(e.target.dataset.id, e.target.value);
+  });
+
+  // Clics : zoom photo · réalisée · supprimer · déplier la fiche
+  document.addEventListener('click', function (e) {
+    if (e.target.tagName === 'IMG' && e.target.closest('.c__p')) {
+      $('#zoom').querySelector('img').src = e.target.src;
+      $('#zoom').classList.add('on');
+      return;
+    }
+    var done = e.target.closest('[data-done]');
+    if (done) { majStatut(done.dataset.done, 'Réalisée'); return; }
+    var del = e.target.closest('[data-del]');
+    if (del) {
+      if (confirm('Supprimer définitivement cette demande et ses photos ? Cette action est irréversible.'))
+        supprimer([+del.dataset.del]);
+      return;
+    }
+    // Micro-interaction : clic sur la fiche (ou son bouton) → détails
+    var tog = e.target.closest('[data-toggle]');
+    var card = tog ? tog.closest('[data-card]')
+                   : (!e.target.closest('a, button, select, .c__p') ? e.target.closest('[data-card]') : null);
+    if (card) {
+      var ouvert = card.classList.toggle('open');
+      var btn = card.querySelector('[data-toggle]');
+      if (btn) btn.textContent = ouvert ? 'Masquer les détails ▴' : 'Voir les détails ▾';
+    }
+  });
+  $('#zoom').addEventListener('click', function () { this.classList.remove('on'); });
+
+  // Tout supprimer les interventions réalisées
+  $('#bulkDel').addEventListener('click', function () {
+    var ids = DATA.filter(function (d) { return d.statut === 'Réalisée'; })
+                  .map(function (d) { return d.id; });
+    if (!ids.length) return;
+    if (confirm('Supprimer définitivement les ' + ids.length + ' intervention(s) réalisée(s) et leurs photos ? Cette action est irréversible.'))
+      supprimer(ids);
+  });
+
+  // Reprise de session
+  try {
+    var s = sessionStorage.getItem('renauva_cle');
+    if (s) { $('#cle').value = s; entrer(); }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

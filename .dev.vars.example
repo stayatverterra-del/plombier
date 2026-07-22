@@ -1,0 +1,5 @@
+# Mot de passe du dashboard /suivi.
+# Au déploiement via le bouton « Deploy to Cloudflare », Cloudflare demande
+# cette valeur et la stocke comme secret (jamais visible dans le code).
+# Choisissez un mot de passe long et unique.
+ADMIN_KEY=

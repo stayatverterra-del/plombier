@@ -1,0 +1,20 @@
+# Fichiers NON servis publiquement (code source, config, outils).
+# Seuls le site (.html, assets/) et _headers/_redirects doivent être publics.
+src/
+migrations/
+sql/
+functions/
+node_modules/
+.git/
+.wrangler/
+wrangler.toml
+package.json
+package-lock.json
+*.py
+__pycache__/
+README.md
+.gitignore
+.assetsignore
+.dev.vars
+.dev.vars.example
+.DS_Store
